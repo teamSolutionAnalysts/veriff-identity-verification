@@ -5,7 +5,7 @@ import { Constants } from "../../config/constants";
 import { Tables } from "../../config/tables";
 import { ResponseBuilder } from "../../helpers/responseBuilder";
 
-export class UserMiddleware {
+export class VeriffMiddleware {
   public checkForUniqueEmail = async (req, res, next) => {
     const { email } = req.body;
     const result = await sql.first(`${Tables.USER}`, ["id"], `email='${email}'`);

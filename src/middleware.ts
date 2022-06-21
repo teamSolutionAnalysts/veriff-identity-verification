@@ -3,11 +3,9 @@ import * as _ from "lodash";
 import { Tables } from "./config/tables";
 import { Encrypt } from "./helpers/encrypt";
 import { ResponseBuilder } from "./helpers/responseBuilder";
-import { User } from "./helpers/user";
 
 export class Middleware {
 
-  private user: User = new User();
   private encryptUtil: Encrypt = new Encrypt();
 
   public authenticateUser = async (req, res, next: () => void) => {

@@ -3,22 +3,20 @@ import { Request, Response } from "express";
 import { Constants } from "../../config/constants";
 import { Log } from "../../helpers/logger";
 import { ResponseBuilder } from "../../helpers/responseBuilder";
-import { User } from "../../helpers/user";
 
 import {isEmpty} from "lodash";
 import { async } from "q";
-import { UserUtils } from "./userUtils";
+import { VeriffUtils } from "./veriffUtils";
 
-export class UserController {
-  private userUtils: UserUtils = new UserUtils();
-  private user: User = new User();
+export class VeriffController {
+  private veriffUtils: VeriffUtils = new VeriffUtils();
   private logger: any = Log.getLogger();
 
   public signup = async (req: Request, res: Response) => {
     const { password, email, fullName } = req.body;
     const encryptedPassword = bcryptjs.hashSync(password, 12);
     const userDetail =  { email, fullName, password: encryptedPassword };
-    const result: ResponseBuilder = await this.userUtils.createUser(userDetail);
+    const result: ResponseBuilder = await this.veriffUtils.createUser(userDetail);
 
     res.status(result.code).json(ResponseBuilder.data(result.result, req.t("SUCCESS")));
   }
@@ -48,7 +46,7 @@ export class UserController {
   public updateUser = async (req: Request, res: Response) => {
     const { fullName } = req.body;
     const { id } = req._user;
-    const result = await this.userUtils.updateUser({ fullName }, id);
+    const result = await this.veriffUtils.updateUser({ fullName }, id);
 
     if (result && result.result ) {
       return res.status(200).json(ResponseBuilder.data(result.result, req.t("SUCCESS")));

@@ -5,7 +5,7 @@ import { Dates } from "../../helpers/date";
 import { Log } from "../../helpers/logger";
 import { ResponseBuilder } from "../../helpers/responseBuilder";
 
-export class UserUtils {
+export class VeriffUtils {
   private dateUtils: Dates = new Dates();
   private logger: any = Log.getLogger();
   public async createUser(userDetail): Promise<ResponseBuilder> {

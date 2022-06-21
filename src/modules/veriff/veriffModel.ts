@@ -3,7 +3,7 @@ import {
 } from "class-validator";
 import { Model } from "../../model";
 
-export class UserModel extends Model {
+export class VeriffModel extends Model {
   @IsNotEmpty()
   @MinLength(5)
   @MaxLength(200)
