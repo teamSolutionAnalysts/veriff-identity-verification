@@ -1,32 +1,27 @@
 import {
-  IsBoolean, IsDate, IsEmail, IsNotEmpty, IsNumberString, IsPositive, MaxLength, MinLength,
+  IsNotEmpty, MaxLength, MinLength
 } from "class-validator";
 import { Model } from "../../model";
 
 export class VeriffModel extends Model {
   @IsNotEmpty()
-  @MinLength(5)
+  @MinLength(3)
   @MaxLength(200)
-  public fullName: string;
+  public firstName: string;
 
   @IsNotEmpty()
-  @IsEmail()
-  public email: string;
-
-  @IsNotEmpty()
-  public password: string;
+  @MinLength(3)
+  @MaxLength(200)
+  public lastName: string;
 
   constructor(body: any) {
     super();
     const {
-      fullName,
-      email,
-      password,
+      firstName,
+      lastName,
     } = body;
 
-    this.fullName = fullName;
-    this.email = email;
-    this.password = password;
-
+    this.firstName = firstName;
+    this.lastName = lastName;
   }
 }

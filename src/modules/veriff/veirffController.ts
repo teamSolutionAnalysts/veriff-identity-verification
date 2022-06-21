@@ -3,25 +3,43 @@ import { Request, Response } from "express";
 import { Constants } from "../../config/constants";
 import { Log } from "../../helpers/logger";
 import { ResponseBuilder } from "../../helpers/responseBuilder";
-
 import {isEmpty} from "lodash";
-import { async } from "q";
-import { VeriffUtils } from "./veriffUtils";
+import { Veriff } from "./veriffUtils";
 
 export class VeriffController {
-  private veriffUtils: VeriffUtils = new VeriffUtils();
+  private veriffUtils: Veriff = new Veriff();
   private logger: any = Log.getLogger();
 
-  public signup = async (req: Request, res: Response) => {
-    const { password, email, fullName } = req.body;
-    const encryptedPassword = bcryptjs.hashSync(password, 12);
-    const userDetail =  { email, fullName, password: encryptedPassword };
-    const result: ResponseBuilder = await this.veriffUtils.createUser(userDetail);
+  public createSession = async (req: Request, res: Response) => {
+    const { firstName, lastName } = req.body;
+    
+    const payload = {
+      verification: {
+        person: {
+          firstName: firstName,
+          lastName: lastName,
+        },
+      }
+    };
+    const veriffResponse:any = await Veriff.start(payload);
+ 
+    // Veriff response with status
+    if(veriffResponse && veriffResponse.data && veriffResponse.data.status == Constants.VERIFF_STATUS.SUCCESS){
+      const response = {
+        sessionId:veriffResponse.data.verification.id,
+        sessionURL:veriffResponse.data.verification.url, 
+        vendorId:veriffResponse.data.verification.vendorData, 
+        sessionToken:veriffResponse.data.verification.sessionToken,
+        status: veriffResponse.data.verification.status,
+      }
 
-    res.status(result.code).json(ResponseBuilder.data(result.result, req.t("SUCCESS")));
+      return res.status(Constants.SUCCESS_CODE).json({ message: req.t("VERIFF_STARTED"), result : response });
+    } else {
+      return res.status(Constants.FAIL_CODE).json(ResponseBuilder.errorMessage(veriffResponse.message));
+    }
   }
 
-  public login = async (req: Request, res: Response) => {
+  public getVeriffDetails = async (req: Request, res: Response) => {
     const user = req.user;
     if (bcryptjs.compareSync(req.body.password, user.password)) {
       const userDetail = {
@@ -34,25 +52,12 @@ export class VeriffController {
 
   }
 
-  public getUser = async (req: Request, res: Response) => {
+  public veriffDecision = async (req: Request, res: Response) => {
     if (!isEmpty(req._user)) {
       const userData = req._user;
       return res.status(200).json(ResponseBuilder.data(userData, req.t("SUCCESS")));
     } else {
       return res.status(500).json(ResponseBuilder.errorMessage(req.t("ERR_TOKEN_EXP")));
     }
-  }
-
-  public updateUser = async (req: Request, res: Response) => {
-    const { fullName } = req.body;
-    const { id } = req._user;
-    const result = await this.veriffUtils.updateUser({ fullName }, id);
-
-    if (result && result.result ) {
-      return res.status(200).json(ResponseBuilder.data(result.result, req.t("SUCCESS")));
-    }  else {
-      return res.status(400).json(ResponseBuilder.errorMessage(req.t("FAILED")));
-    }
-
   }
 }
