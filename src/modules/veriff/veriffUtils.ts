@@ -32,15 +32,53 @@ export class Veriff {
         });
     }
 
+    // get list of attemptes
+    public static async attempts(sessionId:any) {
+        return new Promise(async(resolve, reject) => {
+            // options to set
+            const requestURL = `${process.env.VERIFF_BASE_URL}/v1/sessions/${sessionId}/attempts`;
+            const options = await this.setOptionsData(requestURL, 'GET', "", {key : sessionId});
+            request(options, async (error, response, body) => {
+                if (response) {
+                    if (response.body) {
+                        resolve({
+                            data: JSON.parse(response.body),
+                        });
+                    }
+                } else {
+                    console.log(`start error : ${error}`);
+                    reject(error);
+                }
+            });
+        });
+    }
+
     // static option data
     static async setOptionsData(url:any, method:any, payload:any, hmac_signature:any) {
-        const headers = {
-            'x-auth-client': `${process.env.VERIFF_PUBLISHABLE_KEY}`,
-            // 'x-signature': await this.generateSignature(payload, process.env.VERIFF_PRIVATE_KEY),
-            'content-type':'application/json'
+        let headers;
+        if(hmac_signature && Object.keys(hmac_signature).length > 0) {
+            headers = {
+                'x-auth-client': `${process.env.VERIFF_PUBLISHABLE_KEY}`,
+                'X-HMAC-SIGNATURE': await this.generateOneKeySignature(hmac_signature.key, process.env.VERIFF_PRIVATE_KEY),
+                'content-type':'application/json'
+            };
+        } else {
+            headers = {
+               'x-auth-client': `${process.env.VERIFF_PUBLISHABLE_KEY}`,
+               'content-type':'application/json'
+            };
         }
         const options = { method, headers, url, body:payload };
         return options;
+    }
+
+    // Generate hmac for single key
+    static async generateOneKeySignature( sessionKey: any, secretKey:any ) {
+        return crypto
+                    .createHmac('sha256', secretKey)
+                    .update(Buffer.from(sessionKey, 'utf8'))
+                    .digest('hex')
+                    .toLowerCase();
     }
 
     // generate signature data
