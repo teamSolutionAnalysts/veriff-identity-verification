@@ -7,9 +7,8 @@ import {isEmpty} from "lodash";
 import { Veriff } from "./veriffUtils";
 
 export class VeriffController {
-  private veriffUtils: Veriff = new Veriff();
-  private logger: any = Log.getLogger();
 
+  // create veriff session
   public createSession = async (req: Request, res: Response) => {
     const { firstName, lastName } = req.body;
     
@@ -39,6 +38,7 @@ export class VeriffController {
     }
   }
 
+  // get veriff details
   public getVeriffDetails = async (req: Request, res: Response) => {
     const { sessionId } = req.params;
     const veriffResponse:any = await Veriff.attempts(sessionId);
@@ -51,7 +51,15 @@ export class VeriffController {
     }
   }
 
-  public veriffDecision = async (req: Request, res: Response) => {
-    
+  // To handle the veriff webhook response
+  public verificationWebhook = async (req: Request, res: Response) => {
+    const signature = req.get('x-signature');
+    const secret = process.env.VERIFF_PRIVATE_KEY;
+    const payload = req.body;
+
+    console.log('Received a webhook');
+    console.log('Validated signature:', Veriff.isSignatureValid({ signature, secret, payload }));
+    console.log('Payload', JSON.stringify(payload, null, 4));
+    res.json({ status: 'success' });
   }
 }

@@ -104,19 +104,23 @@ export class Veriff {
     static async isSignatureValid(data: any) {
         const { signature, secret } = data;
         let { payload } = data;
-        
+
+        // check object is constructor or not
         if (data.payload.constructor === Object) {
             payload = JSON.stringify(data.payload);
         }
+
+        // check object is buffer or not
         if (payload.constructor !== Buffer) {
             payload = Buffer.from(payload, 'utf8');
         }
+
+        // Create hash with sha256
         const hash = crypto.createHash('sha256');
-        hash.update(payload);
-        hash.update(Buffer.from(secret));
+              hash.update(payload);
+              hash.update(Buffer.from(secret));
+        
         const digest = hash.digest('hex');
-        console.log("digest value is :: ", digest);
-        console.log("signature.toLowerCase() value is :: ", signature.toLowerCase());
         return digest === signature.toLowerCase();
     }
 }

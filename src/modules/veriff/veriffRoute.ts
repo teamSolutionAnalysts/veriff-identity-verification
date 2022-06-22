@@ -9,12 +9,12 @@ const router: Router = Router();
 const v: Validator = new Validator();
 const veriffController = new VeriffController();
 
+// create and get veriff sessions
 router.post("/sessions", v.validate(VeriffModel), veriffController.createSession);
-
 router.get("/:sessionId/attempts", veriffController.getVeriffDetails);
 
-router.post("/veriff-decision", veriffController.veriffDecision);
-
+// Retrieved the veriff-decision webhook.
+router.post("/verification-webhook", veriffController.verificationWebhook);
 
 // Export the express.Router() instance to be used by server.ts
 export const VeriffRoute: Router = router;
