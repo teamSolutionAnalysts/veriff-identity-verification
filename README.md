@@ -92,9 +92,26 @@ curl --location --request GET 'http://localhost:3003/api/veriff/<session-id>/att
 
 ## Webhook Verification
 
-TransferWise signs all Webhook events, and it is recommended that you [verify this signature](https://api-docs.transferwise.com/#webhook-events-list-signature-header) . Luckily this library can do that for you.
+To handle the response from Veriff services, you will need to implement an endpoint that accepts payloads posted by our services. Please note that Veriff does not allow custom ports to be added to the webhook URLs.
 
-Similarly to how `stripe node` works, you should only use the event returned from the method below.
+**Configuring the webhook endpoint**
+
+Go to Veriff Station, Integrations -> Find the integration to configure -> Settings, and set one of the webhook URLs to the URL where your endpoint is accepting payloads from Veriff. There are several types of webhooks.
+
+If there is a network connectivity issue or technical issue with delivering the notification (any non-200 response code), Veriff will retry the notification once in every hour for up to a week.
+
+**1. Recognizing your customer**
+
+When your server receives a payload from Veriff, you need to be able to reference a customer.There are a couple of ways to do this.
+
+**2. Using the Veriff session ID**
+
+The easiest way is to track the session ID provided by Veriff during session creation. All future webhooks payloads refer to the attempt ID. The attempt ID is unique for each session and it can be used to look up sessions in [Station interface][https://station.veriff.com/verifications].
+
+**3. Using your own customer ID**
+
+To use your own customer ID you need to provide your internal customer ID to Veriff, or some other key that uniquely identifies your customer. You can store your identifier in the vendorData property during the session creation. Please bear in mind that it is technically possible for one customer to be associated with multiple verification sessions, and this could potentially create ambiguous situations in code, if you are only recognizing customers by your own identifier, and not Veriff's session ID.
+
 
 ```js
 const event = tw.webhooks.constructEvent("<webhookMsg>", "<signature>");
