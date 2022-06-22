@@ -106,40 +106,100 @@ When your server receives a payload from Veriff, you need to be able to referenc
 
 **2. Using the Veriff session ID**
 
-The easiest way is to track the session ID provided by Veriff during session creation. All future webhooks payloads refer to the attempt ID. The attempt ID is unique for each session and it can be used to look up sessions in [Station interface][https://station.veriff.com/verifications].
+The easiest way is to track the session ID provided by Veriff during session creation. All future webhooks payloads refer to the attempt ID. The attempt ID is unique for each session and it can be used to look up sessions in [Station interface](https://station.veriff.com/verifications).
 
 **3. Using your own customer ID**
 
 To use your own customer ID you need to provide your internal customer ID to Veriff, or some other key that uniquely identifies your customer. You can store your identifier in the vendorData property during the session creation. Please bear in mind that it is technically possible for one customer to be associated with multiple verification sessions, and this could potentially create ambiguous situations in code, if you are only recognizing customers by your own identifier, and not Veriff's session ID.
 
+**Meaning of the various verification responses**
 
-```js
-const event = tw.webhooks.constructEvent("<webhookMsg>", "<signature>");
+Verification status is one of
+
+- approved
+- resubmission_requested
+- declined
+- expired
+- abandoned
+- review
+
+Verification response code is one of 9001, 9102, 9103, 9104, 9121.
+
+**Explanation of the meaning of the response codes:**
+
+- 9001 : Positive: Person was verified. The verification process is complete. Accessing the sessionURL again will show the client that nothing is to be done here.
+- 9102 : Negative: Person has not been verified. The verification process is complete. Either it was a fraud case or some other severe reason that the person can not be verified. You should investigate the session further and read the "reason". If you decide to give the client another try you need to create a new session.
+- 9103 : Resubmitted: Resubmission has been requested. The verification process is not completed. Something was missing from the client and she or he needs to go through the flow once more. The same sessionURL can and should be used for this purpose.
+- 9104 : Negative: Verification has been expired. The verification process is complete. After 7 days the session get's expired. If the client started the verification process we reply "abandoned" here, otherwise if the client never arrived in our environment the status will be "expired"
+- 9121 : Review: Review status is issued whenever automation engine could not issue a conclusive decision and the verification session needs to be reviewed by a human. This status will be sent depending on service agreement.
+
+## Decision webhook Response
+
+This is the description of the payload sent to Webhook decisions URL. The result of the verification is sent back to the vendor once the verification has been processed.
+
+In most cases we send decision webhook instantly after decision is made with an exception of "resubmission_requested" status. In case resubmission is required we allow end user to resubmit session data instantly without a need to exit the flow. If end user does't do it within 5 minutes we'll send out webhook with resubmission_requested decision.
+
+
+```json
+{
+    "status": "success",
+    "verification": {
+        "id": "12df6045-3846-3e45-946a-14fa6136d78b",
+        "code": 9001,
+        "person": {
+            "gender": null,
+            "idNumber": null,
+            "lastName": "MORGAN",
+            "firstName": "SARAH",
+            "citizenship": null,
+            "dateOfBirth": "1967-03-30",
+            "nationality": null,
+            "yearOfBirth": "1967",
+            "placeOfBirth": "MADRID",
+            "pepSanctionMatch": null
+        },
+        "reason": null,
+        "status": "approved",
+        "comments": [],
+        "document": {
+            "type": "DRIVERS_LICENSE",
+            "number": "MORGA753116SM9IJ",
+            "country": "GB",
+            "validFrom": null,
+            "validUntil": "2022-04-20"
+        },
+        "reasonCode": null,
+        "vendorData": "12345678",
+        "decisionTime": "2019-11-06T07:18:36.916Z",
+        "acceptanceTime": "2019-11-06T07:15:27.000Z",
+        "additionalVerifiedData": {
+            "driversLicenseCategory": {
+                "B": true
+            },
+            "driversLicenseCategoryFrom": {
+                "B": "2019-10-06"
+            },
+            "driversLicenseCategoryUntil": {
+                "B": "2025-10-05"
+            }
+        },
+        "riskLabels": [
+            {
+                "label": "document_integration_level_crosslinked_with_fraud",
+                "category": "document"
+            },
+            {
+                "label": "document_integration_level_crosslinked_with_multiple_declines",
+                "category": "document"
+            }
+        ]
+    },
+    "technicalData": {
+        "ip": "186.153.67.122"
+    }
+}
 ```
 
-Please note that you must pass the **raw** request body, exactly as recieved from TransferWise to the `constructEvent()` function; this will not work with a parsed (i.e., JSON) request body.
-
-You can find an example of how to use this with [Express](https://expressjs.com/) below:
-
-```js
-app.post("/", bodyParser.raw({ type: "application.json" }), (req, res) => {
-  const sig = req.headers["x-signature"];
-  const event = tw.webhooks.constructEvent(req.body, sig);
-  // ...
-});
-```
-
-## Known Sandbox Issues
-
-Below is a series of issues that l have found out through various email chains with TransferWise API team.
-
-**1. Create a Transfer**
-
-When creating a transfer, the field **targetValue** will always be populated as `0` regardless, therefore you should only rely on this field in production.
-
-**2. Simulate a Transfer**
-
-When funding a transfer, the transfer state might show `processing`, however this state is misleading. When simulating, you will still need to simulate from `incoming_payment_waiting` to `processing`.
 
 ## Development
 
