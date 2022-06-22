@@ -40,8 +40,8 @@ curl
     --location --request POST 'http://localhost:3003/api/veriff/sessions' \
     --header 'Content-Type: application/json' \
     --data-raw '{
-        "firstName":"Daps",
-        "lastName":"Chavhan"
+        "firstName":"John",
+        "lastName":"Doe"
     }'
 ```
 
