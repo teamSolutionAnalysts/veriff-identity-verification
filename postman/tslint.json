@@ -1,0 +1,59 @@
+{
+	"info": {
+		"_postman_id": "b9e93853-2494-47ff-a54d-7accb08583cc",
+		"name": "Veriff-identity-verification",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "create new session",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"firstName\":\"Daps\",\n    \"lastName\":\"Chavhan\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}veriff/sessions",
+					"host": [
+						"{{host}}veriff"
+					],
+					"path": [
+						"sessions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "list of attempts",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}veriff/:sessionId/attempts",
+					"host": [
+						"{{host}}veriff"
+					],
+					"path": [
+						":sessionId",
+						"attempts"
+					],
+					"variable": [
+						{
+							"key": "sessionId",
+							"value": "a606847d-437a-46c4-b5de-0140f01ec185"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -1,0 +1,8 @@
+NODE_ENV=development
+PORT=3003
+
+#VeriffCredentials
+VERIFF_BASE_URL= "https://stationapi.veriff.com"
+VERIFF_CALLBACK_URL="https://pwa.stage.starclusive.com/"
+VERIFF_PUBLISHABLE_KEY ="05e99d96-a9ae-419e-8697-7c4ad26ba35b"
+VERIFF_PRIVATE_KEY="177160e8-e17f-42b5-8306-57770f59c064"
